@@ -1,0 +1,9 @@
+<!-- ko if: (cart().estimated_shipping && parseFloat(cart().estimated_shipping) > 0) -->
+<div class="subtotal estimated-shipping">
+    <span class="label">
+        <!-- ko i18n: 'Estimated Shipping' --><!-- /ko -->
+    </span>
+    <span class="price-wrapper"
+          data-bind="text: getFormattedPrice(cart().estimated_shipping)"></span>
+</div>
+<!-- /ko -->

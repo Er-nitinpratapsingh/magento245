@@ -1,0 +1,19 @@
+<?php
+/**
+ * @var $block \Magento\Framework\View\Element\Template
+ */
+?>
+<script type="text/x-magento-init">
+{
+    "[data-block='minicart']": {
+        "Vendor1_MiniCartTotal/js/customer-total": {}
+    }
+}
+</script>
+
+<div class="items-total" id="customer-total-container" style="display:none;">
+    <span class="label">
+        <span><?= $block->escapeHtml(__('Customer Total')) ?></span>
+    </span>
+    <span class="value" id="customer-total-value"></span>
+</div>

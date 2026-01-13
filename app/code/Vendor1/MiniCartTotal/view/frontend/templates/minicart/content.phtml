@@ -1,0 +1,41 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundThis
+// phpcs:disable Magento2.Templates.ThisInTemplate.FoundHelper
+
+/** @var $block \Magento\Checkout\Block\Cart\Sidebar */
+$checkoutHelper = $this->helper(\Magento\Checkout\Helper\Data::class);
+?>
+<div class="block-content">
+    <div data-role="dropdownDialog" class="minicart-wrapper">
+        <!-- ko ifnot: isLoading() -->
+        <div class="block-minicart"
+             data-role="dropdownDialog"
+             data-mage-init='{"dropdownDialog":{
+                "appendTo":"[data-block=minicart]",
+                "triggerTarget":".showcart",
+                "timeout": "2000",
+                "closeOnMouseLeave": false,
+                "closeOnEscape": true,
+                "triggerClass":"active",
+                "parentClass":"active",
+                "buttons":[]}}'>
+            <div id="minicart-content-wrapper" data-bind="scope: 'minicart_content'">
+                <!-- ko template: getTemplate() --><!-- /ko -->
+            </div>
+            <?= $block->getChildHtml('minicart.addons') ?>
+        </div>
+        <!-- /ko -->
+        <!-- ko if: isLoading() -->
+        <div class="minicart-items-wrapper">
+            <div class="subtitle">
+                <?= $block->escapeHtml(__('Loading...')) ?>
+            </div>
+        </div>
+        <!-- /ko -->
+    </div>
+</div>
