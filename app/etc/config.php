@@ -347,8 +347,6 @@ return [
         'PayPal_Braintree' => 1,
         'PayPal_BraintreeGraphQl' => 1,
         'Temando_ShippingRemover' => 1,
-        'Vendor1_MiniCartTotal' => 1,
-        'Vendor1_Minicart' => 1,
         'Vendor1_TestCron' => 1
     ]
 ];
