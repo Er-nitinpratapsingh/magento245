@@ -1,13 +1,37 @@
+# Ignore everything by default
 *
+
+# Allow gitignore itself
 !/.gitignore
+
+# Allow app directory structure
 !/app
 !/app/*/
 !/app/code/**
 !/app/design/**
-!/app/etc/config.php
 !/app/i18n/**
-!/auth.json
+!/app/etc/config.php
+
+# Allow bin (Magento CLI)
+!/bin
+!/bin/**
+
+# Allow pub (but not generated assets)
+!/pub
+!/pub/**
+
+# Block generated pub content
+/pub/static/
+/pub/media/
+
+# Allow composer files
 !/composer.json
 !/composer.lock
+!/auth.json
+
+# Allow specific public files only
 !/pub/media/rootways/megamenu/menu_default.css
 !/pub/PDP_features_quality_import.php
+
+# Allow Jenkins pipeline
+!/Jenkinsfile

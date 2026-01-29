@@ -1,5 +1,5 @@
 <?php
-namespace Vendor1\TestCron\Cron;
+namespace Office\TestCron\Cron;
 
 use Psr\Log\LoggerInterface;
 
