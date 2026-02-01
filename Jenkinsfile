@@ -65,7 +65,7 @@ pipeline {
                     ssh ${EC2_USER}@${EC2_HOST} \
                       "cd ${APP_DIR} && \
                        mkdir -p generated/code generated/metadata var pub/static pub/media && \
-                       sudo chown -R www-data:www-data var generated pub/static pub/media && \
+                       sudo chown -R ubuntu:www-data var generated pub/static pub/media && \
                        ${PHP_BIN} bin/magento maintenance:enable && \
                        ${PHP_BIN} bin/magento setup:upgrade && \
                        ${PHP_BIN} bin/magento setup:di:compile && \
@@ -78,6 +78,7 @@ pipeline {
         }
     }
 }
+
 
 
 
