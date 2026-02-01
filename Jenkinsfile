@@ -28,8 +28,8 @@ pipeline {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
-                      rsync -rz --omit-dir-times --delete \
-                        --chmod=Du=rwx,Dgo=rx,Fu=rw,Fgo=r \
+                      rsync -rz --delete \
+                        --no-perms --no-owner --no-group \
                         -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
                         --exclude=.git \
                         --exclude=var \
@@ -83,5 +83,6 @@ pipeline {
         }
     }
 }
+
 
 
