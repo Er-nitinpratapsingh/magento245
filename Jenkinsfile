@@ -26,6 +26,7 @@ pipeline {
                     sh '''
                       rsync -rz --delete \
                         --no-perms --no-owner --no-group \
+                        --rsync-path="sudo rsync" \
                         -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
                         --exclude=.git \
                         --exclude=var \
@@ -88,4 +89,5 @@ pipeline {
         }
     }
 }
+
 
