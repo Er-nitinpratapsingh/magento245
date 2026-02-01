@@ -47,7 +47,7 @@ pipeline {
                 sshagent(['ec2-ssh-key']) {
                    sh """
                     ssh ${EC2_USER}@${EC2_HOST} \
-                      "cd ${APP_DIR} && sudo -u www-data COMPOSER_IPRESOLVE=4 composer install \
+                      "cd ${APP_DIR} && sudo COMPOSER_IPRESOLVE=4 composer install \
                        --no-dev \
                        --prefer-dist \
                        --optimize-autoloader \
@@ -81,6 +81,7 @@ pipeline {
         }
     }
 }
+
 
 
 
