@@ -69,7 +69,7 @@ pipeline {
                       mkdir -p var pub/static pub/media generated/code generated/metadata && \
                     
                       # 2️⃣ Fix ownership (Magento MUST run as www-data)
-                      sudo chown -R www-data:www-data ${APP_DIR} && \
+                      // sudo chown -R www-data:www-data ${APP_DIR} && \
                     
                       # 3️⃣ Clean old generated/cache content (safe BEFORE compile)
                       sudo rm -rf var/cache/* var/page_cache/* pub/static/* generated/* && \
@@ -91,6 +91,7 @@ pipeline {
         }
     }
 }
+
 
 
 
