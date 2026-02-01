@@ -16,7 +16,7 @@ pipeline {
     stage('Checkout Code') {
         steps {
             git branch: 'main',
-                url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
+                url: 'git@github.com:Er-nitinpratapsingh/magento2.git',
                 credentialsId: 'github-ssh-key'
         }
     }
@@ -71,6 +71,7 @@ pipeline {
 }
 
 }
+
 
 
 
