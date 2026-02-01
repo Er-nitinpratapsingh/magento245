@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        EC2_HOST = "https://projecttrial.tech/"
+        EC2_HOST = "65.1.149.77"
         EC2_USER = "ubuntu"
         APP_DIR  = "/var/www/magento"
         PHP_BIN  = "/usr/bin/php"
@@ -27,6 +27,7 @@ pipeline {
                       --no-dev \
                       --prefer-dist \
                       --optimize-autoloader \
+                      --no-interaction \
                       --no-progress
                 '''
             }
@@ -35,6 +36,7 @@ pipeline {
         stage('Build Magento') {
             steps {
                 sh '''
+                  mkdir -p generated/code generated/metadata var pub/static pub/media
                   ${PHP_BIN} bin/magento deploy:mode:set production
                   ${PHP_BIN} bin/magento cache:flush
                   ${PHP_BIN} bin/magento setup:di:compile
