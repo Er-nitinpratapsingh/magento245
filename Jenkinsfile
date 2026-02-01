@@ -66,7 +66,7 @@ pipeline {
                       cd ${APP_DIR} && \
                     
                       # 1️⃣ Ensure directories exist
-                      mkdir -p var pub/static pub/media generated/code generated/metadata && \
+                      sudo -u www-data mkdir -p var pub/static pub/media generated/code generated/metadata && \
                     
                       # 2️⃣ Fix ownership (Magento MUST run as www-data)
                       // sudo chown -R www-data:www-data ${APP_DIR} && \
@@ -91,6 +91,7 @@ pipeline {
         }
     }
 }
+
 
 
 
