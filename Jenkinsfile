@@ -6,6 +6,10 @@ pipeline {
         EC2_USER = "ubuntu"
         APP_DIR  = "/var/www/magento"
         PHP_BIN  = "/usr/bin/php"
+
+        COMPOSER_IPRESOLVE = '4'
+        COMPOSER_PROCESS_TIMEOUT = '2000'
+        COMPOSER_NO_INTERACTION = '1'
     }
 
     stages {
@@ -69,3 +73,4 @@ pipeline {
         }
     }
 }
+
