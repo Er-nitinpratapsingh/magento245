@@ -65,24 +65,39 @@ pipeline {
                     ssh ${EC2_USER}@${EC2_HOST} "
                       cd ${APP_DIR} && \
                     
-                      # 1️⃣ Ensure directories exist
-                      sudo -u www-data mkdir -p var pub/static pub/media generated/code generated/metadata && \
+                      # Ensure ownership once (do NOT comment this)
+                      sudo chown -R www-data:www-data ${APP_DIR} && \
                     
-                      # 2️⃣ Fix ownership (Magento MUST run as www-data)
-                      #sudo chown -R www-data:www-data ${APP_DIR} && \
+                      # Ensure directories exist
+                      sudo -u www-data mkdir -p \
+                        var \
+                        pub/static \
+                        pub/media \
+                        generated/code \
+                        generated/metadata && \
                     
-                      # 3️⃣ Clean old generated/cache content (safe BEFORE compile)
-                      sudo rm -rf var/cache/* var/page_cache/* pub/static/* generated/* && \
-                    
-                      # 4️⃣ Permissions (use 775 ideally; 777 only if you absolutely must)
-                      sudo chmod -R 775 var pub/static pub/media generated && \
-                    
-                      # 5️⃣ Magento deploy flow (always as www-data)
+                      # Enable maintenance
                       sudo -u www-data ${PHP_BIN} bin/magento maintenance:enable && \
-                      sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade && \
+                    
+                      # Clean ONLY safe directories
+                      sudo -u www-data rm -rf \
+                        var/cache/* \
+                        var/page_cache/* \
+                        pub/static/* && \
+                    
+                      # 🔥 DI compile MUST come immediately after cleanup
                       sudo -u www-data ${PHP_BIN} bin/magento setup:di:compile && \
+                    
+                      # Static content
                       sudo -u www-data ${PHP_BIN} bin/magento setup:static-content:deploy -f && \
+                    
+                      # Upgrade DB (safe after compile)
+                      sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade && \
+                    
+                      # Cache flush
                       sudo -u www-data ${PHP_BIN} bin/magento cache:flush && \
+                    
+                      # Disable maintenance
                       sudo -u www-data ${PHP_BIN} bin/magento maintenance:disable
                     "
                     """
@@ -91,6 +106,7 @@ pipeline {
         }
     }
 }
+
 
 
 
