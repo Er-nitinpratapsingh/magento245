@@ -35,6 +35,8 @@ pipeline {
         stage('Build Magento') {
             steps {
                 sh '''
+                  ${PHP_BIN} bin/magento deploy:mode:set production
+                  ${PHP_BIN} bin/magento cache:flush
                   ${PHP_BIN} bin/magento setup:di:compile
                   ${PHP_BIN} bin/magento setup:static-content:deploy -f
                 '''
