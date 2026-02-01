@@ -61,23 +61,25 @@ pipeline {
         stage('Magento Production Build on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
-                   sh """
-                    ssh ${EC2_USER}@${EC2_HOST} \
-                      "cd ${APP_DIR} && \
-                       mkdir -p generated/code generated/metadata var pub/static pub/media && \
-                       sudo chown -R ubuntu:www-data var generated pub/static pub/media && \
-                       ${PHP_BIN} bin/magento maintenance:enable && \
-                       ${PHP_BIN} bin/magento setup:upgrade && \
-                       ${PHP_BIN} bin/magento setup:di:compile && \
-                       ${PHP_BIN} bin/magento setup:static-content:deploy -f && \
-                       ${PHP_BIN} bin/magento cache:flush && \
-                       ${PHP_BIN} bin/magento maintenance:disable"
+                  sh """
+                    ssh ${EC2_USER}@${EC2_HOST} "
+                      cd ${APP_DIR} && \
+                      mkdir -p generated/code generated/metadata var pub/static pub/media && \
+                      sudo chown -R www-data:www-data var generated pub/static pub/media && \
+                      sudo -u www-data ${PHP_BIN} bin/magento maintenance:enable && \
+                      sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade && \
+                      sudo -u www-data ${PHP_BIN} bin/magento setup:di:compile && \
+                      sudo -u www-data ${PHP_BIN} bin/magento setup:static-content:deploy -f && \
+                      sudo -u www-data ${PHP_BIN} bin/magento cache:flush && \
+                      sudo -u www-data ${PHP_BIN} bin/magento maintenance:disable
+                    "
                     """
                 }
             }
         }
     }
 }
+
 
 
 
