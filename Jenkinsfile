@@ -64,8 +64,20 @@ pipeline {
                   sh """
                     ssh ${EC2_USER}@${EC2_HOST} "
                       cd ${APP_DIR} && \
-                      mkdir -p generated/code generated/metadata var pub/static pub/media && \
-                      sudo chown -R www-data:www-data var generated pub/static pub/media && \
+                    
+                      # 1️⃣ Ensure directories exist
+                      mkdir -p var pub/static pub/media generated/code generated/metadata && \
+                    
+                      # 2️⃣ Fix ownership (Magento MUST run as www-data)
+                      sudo chown -R www-data:www-data ${APP_DIR} && \
+                    
+                      # 3️⃣ Clean old generated/cache content (safe BEFORE compile)
+                      sudo rm -rf var/cache/* var/page_cache/* pub/static/* generated/* && \
+                    
+                      # 4️⃣ Permissions (use 775 ideally; 777 only if you absolutely must)
+                      sudo chmod -R 775 var pub/static pub/media generated && \
+                    
+                      # 5️⃣ Magento deploy flow (always as www-data)
                       sudo -u www-data ${PHP_BIN} bin/magento maintenance:enable && \
                       sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade && \
                       sudo -u www-data ${PHP_BIN} bin/magento setup:di:compile && \
@@ -79,6 +91,7 @@ pipeline {
         }
     }
 }
+
 
 
 
