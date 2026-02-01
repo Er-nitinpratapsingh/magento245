@@ -16,54 +16,62 @@ pipeline {
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main',
-                    url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
+                git(
+                    branch: 'main',
+                    url: 'git@github.com:Er-nitinpratapsingh/magento2.git',
+                    credentialsId: 'github-ssh-key'
+                )
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh '''
-                  composer install \
-                  --no-dev \
-                  --prefer-dist \
-                  --no-interaction \
-                  --optimize-autoloader
-                '''
-            }
-        }
-
-        stage('Build Magento') {
-            steps {
-                sh '''
-                  ${PHP_BIN} bin/magento setup:di:compile
-                  ${PHP_BIN} bin/magento setup:static-content:deploy -f
-                '''
-            }
-        }
-
-        stage('Deploy to EC2') {
+        stage('Deploy Code to EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
-                      rsync -avz --delete \
-                      --exclude=.git \
-                      --exclude=var \
-                      --exclude=pub/media \
-                      ./ ${EC2_USER}@${EC2_HOST}:${APP_DIR}
+                      rsync -az --delete \
+                        --exclude=.git \
+                        --exclude=var \
+                        --exclude=generated \
+                        --exclude=pub/static \
+                        --exclude=pub/media \
+                        ./ ${EC2_USER}@${EC2_HOST}:${APP_DIR}
                     '''
                 }
             }
         }
 
-        stage('Post Deploy Commands') {
+        stage('Install Dependencies on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
-                      ssh ${EC2_USER}@${EC2_HOST} << EOF
+                      ssh ${EC2_USER}@${EC2_HOST} << 'EOF'
                         cd ${APP_DIR}
+                        sudo -u www-data COMPOSER_IPRESOLVE=4 composer install \
+                          --no-dev \
+                          --prefer-dist \
+                          --optimize-autoloader \
+                          --no-interaction \
+                          --no-progress
+                      EOF
+                    '''
+                }
+            }
+        }
+
+        stage('Magento Production Build on EC2') {
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    sh '''
+                      ssh ${EC2_USER}@${EC2_HOST} << 'EOF'
+                        cd ${APP_DIR}
+
+                        mkdir -p generated/code generated/metadata var pub/static pub/media
+                        sudo chown -R www-data:www-data var generated pub/static pub/media
+
                         ${PHP_BIN} bin/magento maintenance:enable
                         ${PHP_BIN} bin/magento setup:upgrade
+                        ${PHP_BIN} bin/magento setup:di:compile
+                        ${PHP_BIN} bin/magento setup:static-content:deploy -f
                         ${PHP_BIN} bin/magento cache:flush
                         ${PHP_BIN} bin/magento maintenance:disable
                       EOF
@@ -73,4 +81,3 @@ pipeline {
         }
     }
 }
-
