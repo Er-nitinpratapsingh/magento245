@@ -29,6 +29,7 @@ pipeline {
                         -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
                         --exclude=.git \
                         --exclude=var \
+                        --exclude=vendor \
                         --exclude=generated \
                         --exclude=pub/static \
                         --exclude=pub/media \
@@ -87,3 +88,4 @@ pipeline {
         }
     }
 }
+
