@@ -52,8 +52,12 @@ pipeline {
                   EOF
                 '''
             }
+<<<<<<< HEAD
         }
     }
+=======
+        } 
+>>>>>>> d93c5e6 (update jenkins for prod)
 
     stage('Magento Setup (Developer Mode)') {
         steps {
