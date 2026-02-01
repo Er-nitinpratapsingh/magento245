@@ -17,7 +17,7 @@ pipeline {
         steps {
             git branch: 'main',
                 url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
-                credentialsId: 'ec2-ssh-key'
+                credentialsId: 'github-ssh-key'
         }
     }
 
@@ -71,6 +71,7 @@ pipeline {
 }
 
 }
+
 
 
 
