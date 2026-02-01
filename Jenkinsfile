@@ -13,66 +13,62 @@ pipeline {
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main',
-                    url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
+    stage('Checkout Code') {
+        steps {
+            git branch: 'main',
+                url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
+        }
+    }
+
+    stage('Deploy Code to EC2') {
+        steps {
+            sshagent(['ec2-ssh-key']) {
+                sh '''
+                  rsync -az --delete \
+                    --exclude=.git \
+                    --exclude=var \
+                    --exclude=generated \
+                    --exclude=pub/static \
+                    --exclude=pub/media \
+                    ./ ${EC2_USER}@${EC2_HOST}:${APP_DIR}
+                '''
             }
         }
+    }
 
-        stage('Install Dependencies') {
-            steps {
+    stage('Install Dependencies on EC2') {
+        steps {
+            sshagent(['ec2-ssh-key']) {
                 sh '''
-                  composer install \
+                  ssh ${EC2_USER}@${EC2_HOST} << 'EOF'
+                    cd ${APP_DIR}
+                    sudo -u www-data COMPOSER_IPRESOLVE=4 composer install \
                       --no-dev \
                       --prefer-dist \
                       --optimize-autoloader \
                       --no-interaction \
                       --no-progress
+                  EOF
                 '''
             }
         }
+    }
 
-        stage('Build Magento') {
-            steps {
+    stage('Magento Setup (Developer Mode)') {
+        steps {
+            sshagent(['ec2-ssh-key']) {
                 sh '''
-                  mkdir -p generated/code generated/metadata var pub/static pub/media
-                  ${PHP_BIN} bin/magento setup:di:compile
-                  ${PHP_BIN} bin/magento setup:static-content:deploy -f
-                  ${PHP_BIN} bin/magento cache:flush
+                  ssh ${EC2_USER}@${EC2_HOST} << 'EOF'
+                    cd ${APP_DIR}
+                    php bin/magento setup:upgrade
+                    php bin/magento cache:flush
+                  EOF
                 '''
-            }
-        }
-
-        stage('Deploy to EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                      rsync -avz --delete \
-                      --exclude=.git \
-                      --exclude=var \
-                      --exclude=pub/media \
-                      ./ ${EC2_USER}@${EC2_HOST}:${APP_DIR}
-                    '''
-                }
-            }
-        }
-
-        stage('Post Deploy Commands') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                      ssh ${EC2_USER}@${EC2_HOST} << EOF
-                        cd ${APP_DIR}
-                        ${PHP_BIN} bin/magento maintenance:enable
-                        ${PHP_BIN} bin/magento setup:upgrade
-                        ${PHP_BIN} bin/magento cache:flush
-                        ${PHP_BIN} bin/magento maintenance:disable
-                      EOF
-                    '''
-                }
             }
         }
     }
 }
+
+}
+
 
