@@ -2,10 +2,13 @@ pipeline {
     agent any
 
     environment {
-        EC2_HOST = "13.203.18.17"
+        EC2_HOST = "https://projecttrial.tech/"
         EC2_USER = "ubuntu"
         APP_DIR  = "/var/www/magento"
         PHP_BIN  = "/usr/bin/php"
+        COMPOSER_IPRESOLVE = '4'
+        COMPOSER_PROCESS_TIMEOUT = '2000'
+        COMPOSER_NO_INTERACTION = '1'
     }
 
     stages {
@@ -21,10 +24,10 @@ pipeline {
             steps {
                 sh '''
                   composer install \
-                  --no-dev \
-                  --prefer-dist \
-                  --no-interaction \
-                  --optimize-autoloader
+                      --no-dev \
+                      --prefer-dist \
+                      --optimize-autoloader \
+                      --no-progress
                 '''
             }
         }
