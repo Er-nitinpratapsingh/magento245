@@ -6,10 +6,6 @@ pipeline {
         EC2_USER = "ubuntu"
         APP_DIR  = "/var/www/magento"
         PHP_BIN  = "/usr/bin/php"
-
-        COMPOSER_IPRESOLVE = '4'
-        COMPOSER_PROCESS_TIMEOUT = '2000'
-        COMPOSER_NO_INTERACTION = '1'
     }
 
     stages {
@@ -42,61 +38,46 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies on EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                   sh """
-                    ssh ${EC2_USER}@${EC2_HOST} \
-                      "cd ${APP_DIR} && sudo COMPOSER_IPRESOLVE=4 composer install \
-                       --no-dev \
-                       --prefer-dist \
-                       --optimize-autoloader \
-                       --no-interaction \
-                       --no-progress"
-                    """
-                }
-            }
-        }
-
         stage('Magento Production Build on EC2') {
             steps {
                 sshagent(['ec2-ssh-key']) {
-                  sh """
-                    ssh ${EC2_USER}@${EC2_HOST} "
+                    sh """
+                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+                    ${EC2_USER}@${EC2_HOST} "
                       cd ${APP_DIR} && \
-                    
-                      # Ensure ownership once (do NOT comment this)
+
+                      # Ensure correct ownership (CRITICAL)
                       sudo chown -R www-data:www-data ${APP_DIR} && \
-                    
-                      # Ensure directories exist
+
+                      # Ensure required directories
                       sudo -u www-data mkdir -p \
                         var \
                         pub/static \
                         pub/media \
                         generated/code \
                         generated/metadata && \
-                    
+
                       # Enable maintenance
                       sudo -u www-data ${PHP_BIN} bin/magento maintenance:enable && \
-                    
-                      # Clean ONLY safe directories
+
+                      # Clean ONLY safe caches
                       sudo -u www-data rm -rf \
                         var/cache/* \
                         var/page_cache/* \
                         pub/static/* && \
-                    
-                      # 🔥 DI compile MUST come immediately after cleanup
+
+                      # 🔥 MUST COMPILE FIRST IN PROD
                       sudo -u www-data ${PHP_BIN} bin/magento setup:di:compile && \
-                    
+
                       # Static content
                       sudo -u www-data ${PHP_BIN} bin/magento setup:static-content:deploy -f && \
-                    
-                      # Upgrade DB (safe after compile)
+
+                      # DB upgrade (after DI)
                       sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade && \
-                    
-                      # Cache flush
+
+                      # Flush cache
                       sudo -u www-data ${PHP_BIN} bin/magento cache:flush && \
-                    
+
                       # Disable maintenance
                       sudo -u www-data ${PHP_BIN} bin/magento maintenance:disable
                     "
@@ -106,20 +87,3 @@ pipeline {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
