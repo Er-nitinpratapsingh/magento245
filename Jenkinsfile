@@ -31,7 +31,9 @@ pipeline {
                     git reset --hard origin/${BRANCH}
 
                     echo "🔹 Composer install"
-                    ${COMPOSER} install --no-dev --optimize-autoloader
+                    export COMPOSER_MEMORY_LIMIT=-1
+                    ${COMPOSER} install --no-dev --optimize-autoloader --no-interaction
+                    ${COMPOSER} dump-autoload -o
 
                     echo "🔹 Magento upgrade"
                     ${PHP} bin/magento setup:upgrade
@@ -64,3 +66,4 @@ pipeline {
         }
     }
 }
+
