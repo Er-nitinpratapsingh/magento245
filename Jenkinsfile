@@ -52,21 +52,15 @@ pipeline {
 
                     echo "🔹 Disable maintenance"
                     ${PHP} bin/magento maintenance:disable
+
+                    echo "✅ Magento production deployment successful!!!"
                 '
                 """
             }
         }
     }
-
-    post {
-        success {
-            echo "✅ Magento production deployment successful"
-        }
-        failure {
-            echo "❌ Deployment failed — maintenance may still be enabled"
-        }
-    }
 }
+
 
 
 
