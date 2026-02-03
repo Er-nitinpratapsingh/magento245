@@ -1,94 +1,54 @@
 pipeline {
     agent any
 
+    options {
+        timeout(time: 60, unit: 'MINUTES')
+    }
+
     environment {
         EC2_USER = "ubuntu"
         EC2_HOST = "13.200.12.191"
         MAGENTO_ROOT = "/var/www/magento"
-        PHP_BIN = "/usr/bin/php"
-        COMPOSER_BIN = "/usr/bin/composer"
-        GIT_BRANCH = "main"
+        PHP = "/usr/bin/php"
+        COMPOSER = "/usr/bin/composer"
+        BRANCH = "main"
     }
 
     stages {
 
-        stage('Checkout Code') {
-            steps {
-                git branch: "${GIT_BRANCH}",
-                    credentialsId: 'github-ssh-key',
-                    url: 'git@github.com:Er-nitinpratapsingh/magento2.git'
-            }
-        }
-
-        stage('Enable Maintenance Mode') {
+        stage('Deploy') {
             steps {
                 sh """
                 ssh ${EC2_USER}@${EC2_HOST} '
-                    cd ${MAGENTO_ROOT} &&
-                    ${PHP_BIN} bin/magento maintenance:enable
-                '
-                """
-            }
-        }
+                    set -e
+                    cd ${MAGENTO_ROOT}
 
-        stage('Deploy Code to EC2') {
-            steps {
-                sh """
-                rsync -avz --delete \
-                --exclude=.git \
-                --exclude=var/cache \
-                --exclude=var/page_cache \
-                --exclude=var/session \
-                ./ ${EC2_USER}@${EC2_HOST}:${MAGENTO_ROOT}
-                """
-            }
-        }
+                    echo "🔹 Enable maintenance"
+                    ${PHP} bin/magento maintenance:enable || true
 
-        stage('Composer Install') {
-            steps {
-                sh """
-                ssh ${EC2_USER}@${EC2_HOST} '
-                    cd ${MAGENTO_ROOT} &&
-                    ${COMPOSER_BIN} install \
-                    --no-dev \
-                    --optimize-autoloader
-                '
-                """
-            }
-        }
+                    echo "🔹 Pull latest code"
+                    git fetch origin
+                    git reset --hard origin/${BRANCH}
 
-        stage('Magento Upgrade & Compile') {
-            steps {
-                sh """
-                ssh ${EC2_USER}@${EC2_HOST} '
-                    cd ${MAGENTO_ROOT} &&
-                    ${PHP_BIN} bin/magento setup:upgrade &&
-                    ${PHP_BIN} bin/magento setup:di:compile &&
-                    ${PHP_BIN} bin/magento setup:static-content:deploy -f
-                '
-                """
-            }
-        }
+                    echo "🔹 Composer install"
+                    ${COMPOSER} install --no-dev --optimize-autoloader
 
-        stage('Permissions') {
-            steps {
-                sh """
-                ssh ${EC2_USER}@${EC2_HOST} '
-                    cd ${MAGENTO_ROOT} &&
-                    chown -R www-data:www-data . &&
-                    find var generated pub/static pub/media app/etc -type f -exec chmod 664 {} \\; &&
-                    find var generated pub/static pub/media app/etc -type d -exec chmod 775 {} \\;
-                '
-                """
-            }
-        }
+                    echo "🔹 Magento upgrade"
+                    ${PHP} bin/magento setup:upgrade
 
-        stage('Disable Maintenance Mode') {
-            steps {
-                sh """
-                ssh ${EC2_USER}@${EC2_HOST} '
-                    cd ${MAGENTO_ROOT} &&
-                    ${PHP_BIN} bin/magento maintenance:disable
+                    echo "🔹 Compile DI"
+                    ${PHP} bin/magento setup:di:compile
+
+                    echo "🔹 Deploy static"
+                    ${PHP} bin/magento setup:static-content:deploy -f
+
+                    echo "🔹 Fix permissions"
+                    chown -R www-data:www-data .
+                    find var generated pub/static pub/media -type d -exec chmod 775 {} \\;
+                    find var generated pub/static pub/media -type f -exec chmod 664 {} \\;
+
+                    echo "🔹 Disable maintenance"
+                    ${PHP} bin/magento maintenance:disable
                 '
                 """
             }
@@ -97,10 +57,10 @@ pipeline {
 
     post {
         success {
-            echo "🚀 Magento production deployment successful!"
+            echo "✅ Magento production deployment successful"
         }
         failure {
-            echo "❌ Deployment failed. Check logs."
+            echo "❌ Deployment failed — maintenance may still be enabled"
         }
     }
 }
