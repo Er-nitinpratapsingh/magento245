@@ -32,6 +32,7 @@ pipeline {
 
                     echo "🔹 Composer install"
                     export COMPOSER_MEMORY_LIMIT=-1
+                    sudo rm -rf generated/* var/cache/* var/page_cache/* var/di/*
                     ${COMPOSER} install --no-dev --optimize-autoloader --no-interaction
                     ${COMPOSER} dump-autoload -o
 
@@ -66,5 +67,6 @@ pipeline {
         }
     }
 }
+
 
 
