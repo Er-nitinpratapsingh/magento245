@@ -59,6 +59,21 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo "✅ Magento production deployment successful"
+        }
+        failure {
+            echo "❌ Deployment failed — check logs"
+        }
+        aborted {
+            echo "⚠️ Deployment aborted — SSH or agent issue"
+        }
+        always {
+            echo "ℹ️ Pipeline finished (cleanup hooks can go here)"
+        }
+    }
 }
 
 
