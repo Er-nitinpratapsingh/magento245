@@ -45,9 +45,9 @@ pipeline {
                     ${PHP} bin/magento setup:static-content:deploy -f
 
                     echo "🔹 Fix permissions"
-                    chown -R www-data:www-data .
-                    find var generated pub/static pub/media -type d -exec chmod 775 {} \\;
-                    find var generated pub/static pub/media -type f -exec chmod 664 {} \\;
+                    sudo chown -R www-data:www-data .
+                    sudo find var generated pub/static pub/media -type d -exec chmod 775 {} \\;
+                    sudo find var generated pub/static pub/media -type f -exec chmod 664 {} \\;
 
                     echo "🔹 Disable maintenance"
                     ${PHP} bin/magento maintenance:disable
@@ -66,4 +66,5 @@ pipeline {
         }
     }
 }
+
 
