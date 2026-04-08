@@ -344,6 +344,8 @@ return [
         'Magento_WishlistAnalytics' => 1,
         'Magento_WishlistGraphQl' => 1,
         'Magento_WishlistSampleData' => 1,
+        'Learning_Blog' => 1,
+        'Learning_PracticeGraphql' => 1,
         'Office_TestCron' => 1,
         'PayPal_Braintree' => 1,
         'PayPal_BraintreeGraphQl' => 1,
