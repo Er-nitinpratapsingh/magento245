@@ -1,0 +1,36 @@
+type Query {
+    blogDetails(
+        blog_id: Int @doc(description: "Search Docs List.")
+    ): BlogDetails
+        @resolver(
+            class: "Learning\\PracticeGraphql\\Model\\Resolver\\BlogDetails"
+        )
+        @doc(description: "Return details about a Blog Details.")
+
+    blogList: [BlogDetails]
+        @resolver(class: "Learning\\PracticeGraphql\\Model\\Resolver\\BlogList")
+        @doc(description: "Get all blog list")
+}
+type BlogDetails {
+    post_id: Int @doc(description: "The ID of a Post page.")
+    name: String @doc(description: "The Post name.")
+    url_key: String @doc(description: "Url Key.")
+    description: String @doc(description: "Post Description")
+}
+
+type Mutation {
+    createPost(
+        input: createPostInput!
+        @doc(description: "An input object that contains changes related to the posts.")
+    ): Posts
+        @resolver(class: "Learning\\PracticeGraphql\\Model\\Resolver\\CreatePost")
+        @doc(description: "Create or update a post.")
+}
+input createPostInput @doc(description: "Contains details about the posts.") {
+    name: String!
+    description: String!
+    url_key: String
+}
+type Posts @doc(description: "Return Success/Error Message.") {
+   message:String @doc(description: "Return Success/Error Message.")
+}

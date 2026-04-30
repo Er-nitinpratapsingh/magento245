@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <!-- FORM CONFIG -->
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">learning_blog_post_form.learning_blog_post_form_data_source</item>
+            <item name="deps" xsi:type="string">learning_blog_post_form.learning_blog_post_form_data_source</item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">Post Information</item>
+    </argument>
+
+    <!-- DATA SOURCE -->
+    <dataSource name="learning_blog_post_form_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Learning\Blog\Ui\Component\DataProvider</argument>
+            <argument name="name" xsi:type="string">learning_blog_post_form_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">post_id</argument>
+            <argument name="requestFieldName" xsi:type="string">post_id</argument>
+        </argument>
+    </dataSource>
+
+    <!-- FIELDSET -->
+    <fieldset name="general">
+        <settings>
+            <label translate="true">General</label>
+        </settings>
+
+        <!-- TITLE -->
+        <field name="name">
+            <settings>
+                <label translate="true">Title</label>
+                <dataType>text</dataType>
+                <formElement>input</formElement>
+                <dataScope>name</dataScope>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+
+        <!-- URL KEY -->
+        <field name="url_key">
+            <settings>
+                <label translate="true">URL Key</label>
+                <dataType>text</dataType>
+                <formElement>input</formElement>
+                <dataScope>url_key</dataScope>
+                <validation>
+                    <rule name="required-entry" xsi:type="boolean">true</rule>
+                </validation>
+            </settings>
+        </field>
+
+        <!-- DESCRIPTION -->
+        <field name="description">
+            <settings>
+                <label translate="true">Description</label>
+                <dataType>text</dataType>
+                <formElement>textarea</formElement>
+                <dataScope>description</dataScope>
+            </settings>
+        </field>
+
+    </fieldset>
+
+</form>

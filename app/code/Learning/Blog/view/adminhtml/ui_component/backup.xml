@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+
+    <!-- JS CONFIG -->
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">learning_blog_post_listing.learning_blog_post_listing_data_source</item>
+        </item>
+    </argument>
+
+    <!-- DATA SOURCE -->
+    <dataSource name="learning_blog_post_listing_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">Learning\Blog\Ui\Component\DataProvider</argument>
+            <argument name="name" xsi:type="string">learning_blog_post_listing_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">post_id</argument>
+            <argument name="requestFieldName" xsi:type="string">post_id</argument>
+        </argument>
+
+        <settings>
+            <updateUrl path="mui/index/render"/>
+        </settings>
+    </dataSource>
+
+    <!-- TOOLBAR -->
+    <listingToolbar name="listing_top">
+        <buttons>
+            <button name="add">
+                <settings>
+                    <label translate="true">Add New Post</label>
+                    <class>primary</class>
+                    <url path="blog/post/edit"/>
+                </settings>
+            </button>
+        </buttons>
+
+        <paging name="listing_paging"/>
+        <filters name="listing_filters"/>
+    </listingToolbar>
+
+    <!-- COLUMNS -->
+    <columns name="columns">
+
+        <column name="post_id">
+            <settings>
+                <label>ID</label>
+                <sorting>asc</sorting>
+            </settings>
+        </column>
+
+        <column name="name">
+            <settings>
+                <label>Title</label>
+            </settings>
+        </column>
+
+        <column name="url_key">
+            <settings>
+                <label>URL Key</label>
+            </settings>
+        </column>
+
+        <column name="created_at">
+            <settings>
+                <label>Created At</label>
+            </settings>
+        </column>
+
+        <column name="updated_at">
+            <settings>
+                <label>Updated At</label>
+            </settings>
+        </column>
+
+        <!-- ACTION COLUMN -->
+        <actionsColumn name="actions">
+            <settings>
+                <indexField>post_id</indexField>
+            </settings>
+        </actionsColumn>
+
+    </columns>
+
+</listing>
