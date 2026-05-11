@@ -1,102 +1,47 @@
-# Magento 2.4.5 Project Setup Steps
+# Magento 2.4.5 Project Setup Guide
 
-## Required Services
+This guide explains how to set up the existing Magento 2.4.5 project from the repository.
 
-| Service | Version |
+---
+
+# Prerequisites
+
+Install the following software before setup.
+
+| Software | Version |
 |---|---|
 | PHP | 8.1 |
-| MySQL | 8.0 |
 | Composer | 2.x |
+| MySQL | 8.0 |
 | Elasticsearch | 7.x |
 | Apache/Nginx | Latest |
+| Git | Latest |
+| Redis (Optional) | Latest |
+| RabbitMQ (Optional) | Latest |
 
 ---
 
-# Step 1: Start Required Services
-
-## Start Apache
-
-```bash
-sudo systemctl start apache2
-```
-
----
-
-## Start MySQL
-
-```bash
-sudo systemctl start mysql
-```
-
----
-
-## Start Elasticsearch
-
-```bash
-sudo systemctl start elasticsearch
-```
-
----
-
-# Step 2: Verify Services
-
-## Verify PHP
-
-```bash
-php -v
-```
-
----
-
-## Verify Composer
-
-```bash
-composer --version
-```
-
----
-
-## Verify MySQL
-
-```bash
-mysql --version
-```
-
----
-
-## Verify Elasticsearch
-
-```bash
-curl localhost:9200
-```
-
----
-
-# Step 3: Clone Repository
+# Step 1: Clone Repository
 
 ```bash
 git clone <repository-url>
 ```
 
----
-
-# Step 4: Go to Project Directory
+Example:
 
 ```bash
-cd <project-folder>
+git clone https://github.com/company/project.git
+```
+
+Go to project directory:
+
+```bash
+cd project
 ```
 
 ---
 
-# Step 5: Pull Latest Code
-
-```bash
-git pull origin <branch-name>
-```
-
----
-
-# Step 6: Install Composer Dependencies
+# Step 2: Install Composer Dependencies
 
 ```bash
 composer install
@@ -104,15 +49,110 @@ composer install
 
 ---
 
-# Step 7: Configure Environment File
+# Step 3: Copy Environment File
+
+If `.env` or `env.php` is not included:
 
 ```bash
 cp app/etc/env.php.sample app/etc/env.php
 ```
 
+OR get the `env.php` file from the team.
+
 ---
 
-# Step 8: Run Setup Upgrade
+# Step 4: Configure Database
+
+Update database credentials in:
+
+```text
+app/etc/env.php
+```
+
+Example:
+
+```php
+'db' => [
+    'connection' => [
+        'default' => [
+            'host' => 'localhost',
+            'dbname' => 'magento245',
+            'username' => 'root',
+            'password' => 'root'
+        ]
+    ]
+]
+```
+
+---
+
+# Step 5: Create Database
+
+Login to MySQL:
+
+```bash
+mysql -u root -p
+```
+
+Create database:
+
+```sql
+CREATE DATABASE magento245;
+```
+
+---
+
+# Step 6: Import Database
+
+```bash
+mysql -u root -p magento245 < database.sql
+```
+
+---
+
+# Step 7: Configure Base URL
+
+Update base URL:
+
+```sql
+UPDATE core_config_data
+SET value = 'http://localhost/project/'
+WHERE path IN ('web/unsecure/base_url', 'web/secure/base_url');
+```
+
+---
+
+# Step 8: Install Elasticsearch
+
+Start Elasticsearch service:
+
+```bash
+sudo systemctl start elasticsearch
+```
+
+Verify:
+
+```bash
+curl localhost:9200
+```
+
+---
+
+# Step 9: Set File Permissions
+
+```bash
+find var generated vendor pub/static pub/media app/etc -type f -exec chmod g+w {} +
+
+find var generated vendor pub/static pub/media app/etc -type d -exec chmod g+ws {} +
+
+chmod u+x bin/magento
+```
+
+---
+
+# Step 10: Run Magento Commands
+
+## Upgrade Setup
 
 ```bash
 php bin/magento setup:upgrade
@@ -120,7 +160,7 @@ php bin/magento setup:upgrade
 
 ---
 
-# Step 9: Compile Dependency Injection
+## Compile
 
 ```bash
 php bin/magento setup:di:compile
@@ -128,7 +168,7 @@ php bin/magento setup:di:compile
 
 ---
 
-# Step 10: Deploy Static Content
+## Deploy Static Content
 
 ```bash
 php bin/magento setup:static-content:deploy -f
@@ -136,7 +176,7 @@ php bin/magento setup:static-content:deploy -f
 
 ---
 
-# Step 11: Reindex
+## Reindex
 
 ```bash
 php bin/magento indexer:reindex
@@ -144,8 +184,188 @@ php bin/magento indexer:reindex
 
 ---
 
-# Step 12: Flush Cache
+## Flush Cache
 
 ```bash
 php bin/magento cache:flush
 ```
+
+---
+
+# Step 11: Enable Developer Mode
+
+```bash
+php bin/magento deploy:mode:set developer
+```
+
+---
+
+# Step 12: Configure Hosts File
+
+Add entry:
+
+```text
+127.0.0.1 project.local
+```
+
+File location:
+
+## Linux/Mac
+
+```text
+/etc/hosts
+```
+
+## Windows
+
+```text
+C:\Windows\System32\drivers\etc\hosts
+```
+
+---
+
+# Step 13: Configure Virtual Host
+
+## Apache Example
+
+```apache
+<VirtualHost *:80>
+    ServerName project.local
+    DocumentRoot /var/www/project/pub
+
+    <Directory /var/www/project/pub>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+Restart Apache:
+
+```bash
+sudo systemctl restart apache2
+```
+
+---
+
+# Step 14: Verify Setup
+
+Open:
+
+```text
+http://project.local
+```
+
+Admin URL example:
+
+```text
+http://project.local/admin
+```
+
+---
+
+# Important Magento Commands
+
+## Cache
+
+```bash
+php bin/magento cache:clean
+php bin/magento cache:flush
+```
+
+---
+
+## Reindex
+
+```bash
+php bin/magento indexer:reindex
+```
+
+---
+
+## Compile
+
+```bash
+php bin/magento setup:di:compile
+```
+
+---
+
+## Upgrade
+
+```bash
+php bin/magento setup:upgrade
+```
+
+---
+
+# Cron Setup
+
+Install cron jobs:
+
+```bash
+php bin/magento cron:install
+```
+
+Verify:
+
+```bash
+crontab -l
+```
+
+---
+
+# Common Issues
+
+## Permission Issues
+
+```bash
+sudo chmod -R 777 var pub generated
+```
+
+---
+
+## Static Content Issue
+
+```bash
+rm -rf pub/static/*
+php bin/magento setup:static-content:deploy -f
+```
+
+---
+
+## Compilation Error
+
+```bash
+rm -rf generated/*
+php bin/magento setup:di:compile
+```
+
+---
+
+## Elasticsearch Connection Error
+
+Verify service:
+
+```bash
+sudo systemctl status elasticsearch
+```
+
+---
+
+# Recommended Development Tools
+
+- PHPStorm
+- Docker
+- Xdebug
+- Redis
+- RabbitMQ
+
+---
+
+# Notes
+
+- Use developer mode for local setup.
+- Never commit `app/etc/env.php`.
+- Keep database dump updated.
+- Run reindex after importing database.

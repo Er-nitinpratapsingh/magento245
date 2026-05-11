@@ -2,105 +2,80 @@ pipeline {
     agent any
 
     options {
-        timeout(time: 45, unit: 'MINUTES')
+        timeout(time: 60, unit: 'MINUTES')
     }
 
     environment {
-        EC2_HOST = "65.1.149.77"
         EC2_USER = "ubuntu"
-        APP_DIR  = "/var/www/magento"
-        PHP_BIN  = "/usr/bin/php"
+        EC2_HOST = "13.200.12.191"
+        MAGENTO_ROOT = "/var/www/magento"
+        PHP = "/usr/bin/php"
+        COMPOSER = "/usr/bin/composer"
+        BRANCH = "main"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Deploy') {
             steps {
-                git(
-                    branch: 'main',
-                    url: 'git@github.com:Er-nitinpratapsingh/magento2.git',
-                    credentialsId: 'github-ssh-key'
-                )
-            }
-        }
-
-        stage('Deploy Code to EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                      set -e
-                      set -o pipefail
-                      trap "exit 1" INT TERM
-
-                      rsync -rz --delete \
-                        --no-perms --no-owner --no-group \
-                        --rsync-path="sudo rsync" \
-                        -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
-                        --exclude=.git \
-                        --exclude=var \
-                        --exclude=vendor \
-                        --exclude=generated \
-                        --exclude=pub/static \
-                        --exclude=pub/media \
-                        ./ ${EC2_USER}@${EC2_HOST}:${APP_DIR}
-                    '''
-                }
-            }
-        }
-
-        stage('Magento Production Build on EC2') {
-            steps {
-                sshagent(['ec2-ssh-key']) {
-                    sh """
+                sh """
+                ssh ${EC2_USER}@${EC2_HOST} '
                     set -e
-                    set -o pipefail
-                    trap "exit 1" INT TERM
+                    cd ${MAGENTO_ROOT}
 
-                    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-                    ${EC2_USER}@${EC2_HOST} "
-                      set -e
-                      set -o pipefail
+                    echo "🔹 Enable maintenance"
+                    ${PHP} bin/magento maintenance:enable || true
 
-                      cd ${APP_DIR}
+                    echo "🔹 Pull latest code"
+                    git fetch origin
+                    git reset --hard origin/${BRANCH}
 
-                      sudo chown -R www-data:www-data ${APP_DIR}
+                    echo "🔹 Composer install"
+                    export COMPOSER_MEMORY_LIMIT=-1
+                    sudo rm -rf generated/* var/cache/* var/page_cache/* var/di/*
+                    ${COMPOSER} install --no-dev --optimize-autoloader --no-interaction
+                    ${COMPOSER} dump-autoload -o
 
-                      sudo -u www-data mkdir -p \
-                        var \
-                        pub/static \
-                        pub/media \
-                        generated/code \
-                        generated/metadata
+                    echo "🔹 Magento upgrade"
+                    ${PHP} bin/magento setup:upgrade
 
-                      sudo -u www-data ${PHP_BIN} bin/magento maintenance:enable
+                    echo "🔹 Compile DI"
+                    ${PHP} bin/magento setup:di:compile
 
-                      sudo -u www-data rm -rf \
-                        var/cache/* \
-                        var/page_cache/* \
-                        pub/static/*
+                    echo "🔹 Deploy static"
+                    ${PHP} bin/magento setup:static-content:deploy -f
 
-                      sudo -u www-data ${PHP_BIN} bin/magento setup:di:compile
+                    echo "🔹 Fix permissions"
+                    sudo chown -R www-data:www-data .
+                    sudo find var generated pub/static pub/media -type d -exec chmod 775 {} \\;
+                    sudo find var generated pub/static pub/media -type f -exec chmod 664 {} \\;
 
-                      sudo -u www-data ${PHP_BIN} bin/magento setup:static-content:deploy -f
+                    echo "🔹 Disable maintenance"
+                    ${PHP} bin/magento maintenance:disable
 
-                      sudo -u www-data ${PHP_BIN} bin/magento setup:upgrade
-
-                      sudo -u www-data ${PHP_BIN} bin/magento cache:flush
-
-                      sudo -u www-data ${PHP_BIN} bin/magento maintenance:disable
-                    "
-                    """
-                }
+                    echo "✅ Magento production deployment successful!!!"
+                '
+                """
             }
         }
     }
 
     post {
-        aborted {
-            echo "⚠️ Build aborted — timeout or manual stop triggered"
+        success {
+            echo "✅ Magento production deployment successful"
         }
         failure {
-            echo "❌ Build failed — check logs"
+            echo "❌ Deployment failed — check logs"
+        }
+        aborted {
+            echo "⚠️ Deployment aborted — SSH or agent issue"
+        }
+        always {
+            echo "ℹ️ Pipeline finished (cleanup hooks can go here)"
         }
     }
 }
+
+
+
+
