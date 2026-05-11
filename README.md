@@ -307,24 +307,42 @@ C:\Windows\System32\drivers\etc\hosts
 
 # Step 13: Configure Virtual Host
 
-## Apache Example
+## Nginx Example
 
-```apache
-<VirtualHost *:80>
-    ServerName project.local
-    DocumentRoot /var/www/project/pub
+```nginx
+server {
+    listen 80;
+    server_name project.local www.project.local;
+    root /var/www/project/pub;
+    #include /var/www/html/magento2/nginx.conf.sample;
 
-    <Directory /var/www/project/pub>
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
+    index index.html index.htm index.php;
+
+    location / {
+        #try_files $uri $uri/ =404;
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~* \.php$ {
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_index index.php;
+        include fastcgi_params;
+        fastcgi_buffers 16 16k; 
+	fastcgi_buffer_size 32k;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+}
 ```
 
-Restart Apache:
+Restart Nginx:
 
 ```bash
-sudo systemctl restart apache2
+sudo systemctl restart nginx
 ```
 
 ---
@@ -449,4 +467,4 @@ sudo systemctl status elasticsearch
 - Use developer mode for local setup.
 - Never commit `app/etc/env.php`.
 - Keep database dump updated.
-- Run reindex after importing database.
+- Reindex after importing database.
