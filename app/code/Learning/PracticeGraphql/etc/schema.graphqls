@@ -1,3 +1,4 @@
+# Fetch blog Post
 type Query {
     blogDetails(
         blog_id: Int @doc(description: "Search Docs List.")
@@ -18,6 +19,7 @@ type BlogDetails {
     description: String @doc(description: "Post Description")
 }
 
+# Create blog post
 type Mutation {
     createPost(
         input: createPostInput!
@@ -33,4 +35,52 @@ input createPostInput @doc(description: "Contains details about the posts.") {
 }
 type Posts @doc(description: "Return Success/Error Message.") {
    message:String @doc(description: "Return Success/Error Message.")
+}
+
+# getting the product details 
+type Query {
+    guestProductDetails(
+        sku: String!
+    ): GuestProductDetails @resolver(class: "Learning\\PracticeGraphql\\Model\\Resolver\\GuestProductDetailsResolver")
+}
+
+type GuestProductDetails {
+    id: Int
+    sku: String
+    name: String
+    price: Float
+    type_id: String
+    status: Int
+}
+
+# fetch product details via sku
+type Query {
+    getSingleProduct(
+        sku: String!
+    ): GetSingleProduct @resolver (class: "Learning\\PracticeGraphql\\Model\\Resolver\\GetSingleProduct")
+}
+
+type GetSingleProduct {
+    name: String
+    price: Float
+    image: String
+    quantity: Int
+}
+
+# fetch customer orders
+type Query {
+    getCustomerOrders : [GetCustomerOrders] @resolver (class: "Learning\\PracticeGraphql\\Model\\Resolver\\GetCustomerOrders")
+}
+
+type GetCustomerOrders {
+    increment_id: Int
+    grand_total: Float
+    items: [OrderItem]
+}
+
+type OrderItem {
+    name: String
+    sku: String
+    qty: Float
+    price: Float
 }
