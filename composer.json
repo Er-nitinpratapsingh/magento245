@@ -100,5 +100,8 @@
     ],
     "extra": {
         "magento-force": "override"
+    },
+    "replace": {
+        "magento/module-two-factor-auth": "*"
     }
 }
